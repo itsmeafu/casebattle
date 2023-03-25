@@ -1,0 +1,26 @@
+{
+    "name": "FurkanUNAL",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "freecase extension for keydrop",
+    "permissions": [
+        "scripting",
+        "activeTab",
+        "tabs"
+    ],
+    "host_permissions": [
+        "*://key-drop.com/*"
+    ],
+    "action": {
+        "default_title": "Savaşı başlat",
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "16": "img/16.png",
+        "48": "img/48.png",
+        "128": "img/128.png"
+    }
+    
+   
+
+}
