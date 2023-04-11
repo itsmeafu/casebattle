@@ -1,67 +1,51 @@
 function joinCaseBattle() {
-  const TARGETS = [
-    'TOXIC', 'DIABLO', 'SPARK', 'ICE BLAST', 'TEETH', 'BEAST', 
-    'SERENITY', 'JOY', 'PROGRESS', 'KITTY'
-  ];
+  const TARGET_CASES = ['TOXIC', 'DIABLO', 'SPARK', 'ICE BLAST', 'TEETH', 'BEAST', 'SERENITY', 'JOY', 'PROGRESS', 'KITTY', 'BOBBY'];
+  const CASE_SELECTOR = 'p.max-w-full.px-1.overflow-hidden';
+  const PRICE_SELECTOR = 'div.flex.items-center.justify-center.rounded-tl-lg';
+  const BUTTON_SELECTOR = 'a.button.mr-5';
+  const JOIN_BUTTON_SELECTOR = 'button.h-12.button-green-dimmed';
+  const JOIN_DELAY = 100;
+  const RANDOM_DELAY = 1.2;
 
-  const waitFor = (delay) => new Promise(resolve => setTimeout(resolve, delay));
-
-  const openCase = async () => {
-    const caseNames = [...document.querySelectorAll('p.max-w-full.px-1.overflow-hidden')]
-      .splice(0, 3)
-      .map(element => element.textContent);
-    const casePrices = [...document.querySelectorAll('div.flex.items-center.justify-center.rounded-tl-lg')]
-      .splice(0, 3)
-      .map(element => element.textContent);
-    
-    const targetIndex = caseNames.findIndex(name => TARGETS.includes(name));
-    if (targetIndex === -1 || casePrices[targetIndex] !== 'FREE') {
-      return false; // Target case not found or not free
-    }
-
-    const caseButton = [...document.querySelectorAll('a.button.mr-5')][targetIndex];
-    caseButton.click();
-
-    await waitFor(500);
-    return true; // Successfully opened the target case
-  };
-
-  const joinBattle = async () => {
-    const joinButton = document.querySelector('button.h-12.button-green-dimmed');
-    if (!joinButton) {
-      return false; // Join button not found
-    }
-
-    joinButton.click();
-    await waitFor(500);
-    return true; // Successfully joined the battle
-  };
-
-  const joinCaseBattle = async () => {
+  (async () => {
     while (true) {
-      const success = await openCase();
-      if (success) {
-        while (true) {
-          if (await joinBattle()) {
-            break; // Successfully joined the battle, stop looping
+      await new Promise(r => setTimeout(r, JOIN_DELAY));
+      try {
+        const caseNames = [...document.querySelectorAll(CASE_SELECTOR)]
+          .slice(0, 3)
+          .map(e => e.textContent);
+        const casePrices = [...document.querySelectorAll(PRICE_SELECTOR)]
+          .slice(0, 3)
+          .map(e => e.textContent);
+        const targetIndex = caseNames.findIndex(name => TARGET_CASES.includes(name));
+        if (targetIndex !== -1 && casePrices[targetIndex] === 'FREE') {
+          const btns = [...document.querySelectorAll(BUTTON_SELECTOR)];
+          const btn = btns[targetIndex];
+          btn.click();
+          while (true) {
+            await new Promise(r => setTimeout(r, JOIN_DELAY * (Math.random() + RANDOM_DELAY)));
+            try {
+              const joinBtn = document.querySelector(JOIN_BUTTON_SELECTOR);
+              if (joinBtn) {
+                joinBtn.click();
+                break;
+              }
+            } catch { null; }
           }
         }
-      }
-
-      await waitFor(500);
+      } catch { null; }
     }
-  };
-
-  joinCaseBattle();
+  })();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('join-button').addEventListener('click', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('join-button').addEventListener('click', function() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
       if (tabs.length > 0) {
+        const tabId = tabs[0].id;
         chrome.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          func: joinCaseBattle
+          target: { tabId: tabId },
+          func: joinCaseBattle,
         });
       } else {
         console.error('No active tab found.');
